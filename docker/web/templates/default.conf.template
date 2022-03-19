@@ -1,0 +1,72 @@
+server {
+  server_name ${WWW_NGINX_SERVER_NAME};
+  listen ${WWW_NGINX_LISTEN_HTTPS} ssl default_server;
+
+  ssl_certificate ${WWW_NGINX_SSL_CERT};
+  ssl_certificate_key ${WWW_NGINX_SSL_CERT_KEY};
+
+  root ${WWW_NGINX_DOCUMENT_ROOT};
+  index ${WWW_NGINX_INDEX};
+
+  add_header X-Frame-Options DENY always;
+  add_header X-XSS-Protection "1; mode=block" always;
+  add_header X-Content-Type-Options nosniff always;
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  ${WWW_NGINX_CSP_HEADER}
+
+  # Diable IE compatibility mode
+  add_header X-UA-Compatible "IE=Edge,chrome=1" always;
+
+  charset utf-8;
+
+  client_max_body_size 50M;
+
+  # All request
+  location / {
+    try_files $uri $uri/ /index.html?$query_string;
+    gzip on;
+    gzip_types text/css application/javascript application/json application/font-woff application/font-tff image/gif image/png image/jpeg application/octet-stream;
+  }
+
+  # Disable log for favicon and robots.txt request
+  location = /favicon.ico { access_log off; log_not_found off; }
+  location = /robots.txt { access_log off; log_not_found off; }
+  location ~ /static/icon-.* { access_log off; log_not_found off; }
+
+  location ~ /\.(?!well-known).* {
+    deny all;
+  }
+}
+# API server
+server {
+  server_name api.${WWW_NGINX_SERVER_NAME};
+  listen ${WWW_NGINX_LISTEN_HTTPS} ssl;
+
+  ssl_certificate ${WWW_NGINX_SSL_CERT};
+  ssl_certificate_key ${WWW_NGINX_SSL_CERT_KEY};
+
+  proxy_redirect off;
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Host $host;
+  proxy_set_header X-Forwarded-Server $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header Connection '';
+  proxy_http_version 1.1;
+
+  # all requests
+  location / {
+    proxy_pass http://nanologapp:${API_NGINX_PROXY_PORT};
+  }
+}
+# redirect to https
+server {
+  listen ${WWW_NGINX_LISTEN_HTTP};
+  server_name ${WWW_NGINX_SERVER_NAME};
+  return 301 https://$host$request_uri;
+}
+server {
+  listen ${WWW_NGINX_LISTEN_HTTP};
+  server_name api.${WWW_NGINX_SERVER_NAME};
+  return 301 https://$host$request_uri;
+}

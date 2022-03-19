@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile
+    environment:
+      WWW_NGINX_SERVER_NAME: ${WWW_NGINX_SERVER_NAME}
+      WWW_NGINX_LISTEN_HTTPS: ${WWW_NGINX_LISTEN_HTTPS}
+      WWW_NGINX_LISTEN_HTTP: ${WWW_NGINX_LISTEN_HTTP}
+      WWW_NGINX_DOCUMENT_ROOT: ${WWW_NGINX_DOCUMENT_ROOT}
+      WWW_NGINX_INDEX: ${WWW_NGINX_INDEX}
+      WWW_NGINX_SSL_CERT: ${WWW_NGINX_SSL_CERT}
+      WWW_NGINX_SSL_CERT_KEY: ${WWW_NGINX_SSL_CERT_KEY}
+      WWW_NGINX_ACCESS_CONTROL_HEADERS: |
+          add_header Access-Control-Allow-Origin "https://test-nanolog.local";
+          add_header Access-Control-Allow-Methods "GET,POST,PUT,DELETE,OPTIONS,HEAD";
+          add_header Access-Control-Allow-headers "Content-Type,Accept,X-Requested-With";
+          add_header Access-Control-Allow-Credentials "true";
+      WWW_NGINX_CSP_HEADER: ${WWW_NGINX_CSP_HEADER}
+      API_NGINX_PROXY_PORT: ${APP_HTTP_PORT}
+    container_name: nanologweb
+    ports:
+      - ${WWW_HTTP_PORT}:${WWW_NGINX_LISTEN_HTTP}
+      - ${WWW_HTTPS_PORT}:${WWW_NGINX_LISTEN_HTTPS}
+    volumes:
+      - ${WWW_DIST_PATH}:/var/nanolog/www
+      - ./docker/web/templates:/etc/nginx/templates
+      - ${WWW_NGINX_CERTS_DIR}:/etc/nginx/conf.d/ssl
+    restart: always
+
+  app:
+    build:
+      context: ./.
+      dockerfile: ./docker/app/Dockerfile
+      args: 
+        - APP_AUTH_TOKEN_SECRET=${APP_AUTH_TOKEN_SECRET}
+        - APP_AUTH_TOKEN_ISSUER=${APP_AUTH_TOKEN_ISSUER}
+        - DB_PASSWORD=${APP_DB_PASSWORD}
+        - APP_CORS_ALLOWED_ORIGIN=${APP_CORS_ALLOWED_ORIGIN}
+        - APP_SERVER_HOSTNAME=${APP_SERVER_HOSTNAME}
+    container_name: nanologapp
+    volumes:
+      - ${APP_DIST_PATH}:/var/nanolog
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    
+  db:
+    build:
+      context: ./.
+      dockerfile: ./docker/db/Dockerfile
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DATABASE}
+    container_name: nanologdb
+    user: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - ${POSTGRES_DATA}:/var/lib/postgresql/data
