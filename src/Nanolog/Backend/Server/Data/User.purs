@@ -1,4 +1,4 @@
-module Nanolog.Backend.Server.Model.User where
+module Nanolog.Backend.Server.Data.User where
 
 import Data.Maybe (Maybe)
 import Nanolog.Shared.Data.Email (Email)

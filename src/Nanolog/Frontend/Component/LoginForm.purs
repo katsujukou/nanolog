@@ -15,7 +15,6 @@ import Halogen.HTML.Properties as HP
 import Nanolog.Frontend.Data.Types (LoginCredential)
 import Nanolog.Shared.Data.Email (Email)
 import Nanolog.Shared.Data.Email as Email
-import Nanolog.Shared.Foreign.Utils.Debug (debugLog)
 
 type Form :: (Type -> Type -> Type -> Type) -> Row Type
 type Form f =

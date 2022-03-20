@@ -3,8 +3,9 @@ module Nanolog.Backend.Server.DB.Users where
 import Prelude
 
 import Data.Maybe (Maybe)
-import Nanolog.Backend.Server.Model.User (UserWithMetadata)
+import Nanolog.Backend.Server.Data.User (UserWithMetadata)
 import Nanolog.Shared.Data.Email (Email)
+import Nanolog.Shared.Data.Types (UserId)
 import Nanolog.Shared.Foreign.Day (DateTime)
 import Nanolog.Shared.Foreign.UUID (UUID)
 import Selda (Table(..), restrict, selectFrom, (.==))
@@ -25,4 +26,10 @@ queryUserByEmail :: forall m. MonadSeldaPG m => Email -> m (Maybe UserWithMetada
 queryUserByEmail email = query1 do
   selectFrom users \row -> do
     restrict $ row.email .== (litPG email)
+    pure row
+
+queryUserById :: forall m. MonadSeldaPG m => UserId -> m (Maybe UserWithMetadata)
+queryUserById userId = query1 do
+  selectFrom users \row -> do
+    restrict $ row.id .== (litPG userId)
     pure row

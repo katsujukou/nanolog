@@ -18,6 +18,7 @@ mkClient = do
         , extraHeaders = Headers.fromFoldable
           [ "X-Requested-With" /\ "XMLHttpRequest"
           ]
+        , withCredentials = true
         }
       client = P.mkClient clientOpts (Spec :: Spec {| RouteSpec ()})
   pure client

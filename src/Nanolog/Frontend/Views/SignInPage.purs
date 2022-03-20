@@ -6,18 +6,20 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe)
 import Effect.Class (class MonadEffect)
 import Effect.Class.Console as Console
-import Halogen (ClassName(..), liftEffect)
+import Halogen (ClassName(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Hooks (HookM)
+import Halogen.Hooks as Hook
 import Halogen.Hooks as Hooks
 import Halogen.Router.Class (class MonadRouter, navigate)
 import Nanolog.Frontend.Capability.Authentication (class Authentication, signIn)
 import Nanolog.Frontend.Component.LoginForm (loginForm)
 import Nanolog.Frontend.Data.Types (LoginCredential)
 import Nanolog.Frontend.Route (Route(..))
+import Nanolog.Shared.Data.Types (AuthUserInfo)
 import Type.Proxy (Proxy(..))
 
 type Input =
@@ -26,12 +28,14 @@ type Input =
 
 data Action = HandleLoginForm LoginCredential
 
-signInPage :: forall q o m
+data Message = LoggedIn AuthUserInfo
+
+signInPage :: forall q m
             . MonadEffect m
            => MonadRouter Route m 
            => Authentication m
-           => H.Component q Input o m
-signInPage = Hooks.component \_ { redirectTo: _ } -> Hooks.do
+           => H.Component q Input Message m
+signInPage = Hooks.component \{ outputToken: o } { redirectTo: _ } -> Hooks.do
 
   let
     handleAction :: Action -> HookM m Unit
@@ -39,8 +43,13 @@ signInPage = Hooks.component \_ { redirectTo: _ } -> Hooks.do
       HandleLoginForm cred -> do
         res <- signIn cred
         case res of
-          Left err -> Console.log err
-          Right authUser -> Console.logShow authUser
+          Left err -> do
+            -- 適切な後処理。。
+            Console.log err
+            pure unit
+          -- ログイン成功
+          Right authUser -> do
+            Hook.raise o $ LoggedIn authUser
 
   Hooks.pure do
     HH.div []

@@ -15,7 +15,7 @@ services:
       WWW_NGINX_SSL_CERT_KEY: ${WWW_NGINX_SSL_CERT_KEY}
       WWW_NGINX_ACCESS_CONTROL_HEADERS: |
           add_header Access-Control-Allow-Origin "https://test-nanolog.local";
-          add_header Access-Control-Allow-Methods "GET,POST,PUT,DELETE,OPTIONS,HEAD";
+          add_header Access-Control-Allow-Methods "GET,POST,PUT,DELETE";
           add_header Access-Control-Allow-headers "Content-Type,Accept,X-Requested-With";
           add_header Access-Control-Allow-Credentials "true";
       WWW_NGINX_CSP_HEADER: ${WWW_NGINX_CSP_HEADER}

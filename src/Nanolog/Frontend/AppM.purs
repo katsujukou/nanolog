@@ -46,6 +46,8 @@ instance MonadRouter Route AppM where
 instance Authentication AppM where
   signIn cred = AppM do
     liftAff $ API.login cred
+  
+  getSelf = AppM $ liftAff API.loginWithStoredCredential
 
 runAppM :: forall q i o
          . Env

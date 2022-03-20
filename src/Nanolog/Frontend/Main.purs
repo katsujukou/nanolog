@@ -2,14 +2,15 @@ module Nanolog.Frontend.Main where
 
 import Prelude
 
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.Router.Trans.PushState (RouterInstance, mkRouter)
 import Halogen.VDom.Driver (runUI)
-import Nanolog.Frontend.Component.App (app)
 import Nanolog.Frontend.AppM (runAppM)
+import Nanolog.Frontend.Component.App (app)
 import Nanolog.Frontend.Env (Env)
 import Nanolog.Frontend.Route (Route, routeCodec)
 import Nanolog.Frontend.Store (Store)
@@ -35,6 +36,11 @@ main = runHalogenAff do
       router <- liftEffect $ mkRouter routeCodec
 
       store <- do
-        pure {}
+        pure
+          { app:
+            { boot: false
+            , auth: Nothing
+            }
+          }
       
       in { env, router, store }

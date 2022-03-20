@@ -1,11 +1,9 @@
-module Nanolog.Backend.Server.Model.AccessTokenInfo where
+module Nanolog.Backend.Server.Data.AccessTokenInfo where
 
 import Data.Maybe (Maybe)
+import Nanolog.Backend.Server.Data.Token (TokenId)
 import Nanolog.Shared.Data.Types (UserId)
 import Nanolog.Shared.Foreign.Day (DateTime)
-import Nanolog.Shared.Foreign.UUID (UUID)
-
-type TokenId = UUID
 
 type AccessTokenInfo =
   { userId :: UserId

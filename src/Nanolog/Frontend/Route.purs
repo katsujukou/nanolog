@@ -30,6 +30,9 @@ derive instance Generic MainRoute _
 instance Show MainRoute where
   show = genericShow
 
+home :: Route
+home = Main Home
+
 requireAuth :: Route -> Boolean
 requireAuth = case _ of
   Main mainRoute -> case mainRoute of 

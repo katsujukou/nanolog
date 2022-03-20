@@ -4,7 +4,7 @@ import Prelude
 
 import Data.Either (Either(..))
 import Effect.Aff (Aff, error, throwError)
-import Nanolog.Backend.Server.API (CorsRouteSpec, GuardSpec, guardCsrf, guardUntrustedCors, handleCorsPreflight, loginAPI)
+import Nanolog.Backend.Server.API (CorsRouteSpec, GuardSpec, corsGuard, csrfGuard, getSelfAPI, handleCorsPreflight, loginAPI, provideAuthUserGuard)
 import Nanolog.Backend.Server.Config (Config)
 import Nanolog.Backend.Server.Env (mkEnv)
 import Nanolog.Shared.RouteSpec (RouteSpec)
@@ -25,21 +25,23 @@ main config = do
       where
         spec :: Spec
           { guards :: GuardSpec
-          , routes :: {| RouteSpec + CorsRouteSpec ()}
+          , routes :: {| RouteSpec + CorsRouteSpec + ()}
           }
         spec = Spec
 
         api = 
           { guards:
-            { csrf: guardCsrf
-            , cors: guardUntrustedCors env
+            { csrf: csrfGuard env
+            , cors: corsGuard env
+            , authUser: provideAuthUserGuard env
             }
           , handlers:
             { v1:
               { auth:
-                { login: loginAPI env
+                { newToken: loginAPI env
+                , getSelf: getSelfAPI env
                 }
               }
-            , cors: handleCorsPreflight
+            , cors: handleCorsPreflight env
             }
           }
